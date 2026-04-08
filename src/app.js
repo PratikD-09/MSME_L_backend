@@ -63,13 +63,18 @@ app.use(helmet({
 const allowedOrigins = [
   process.env.CORS_ORIGIN,
   'http://localhost:5173',
-  'http://localhost:5174'
+  'http://localhost:5174',
+  'https://msme-lending-frontend.vercel.app'
 ].filter(Boolean)
 
 const corsOptions = {
   origin: (origin, callback) => {
     if (!origin) return callback(null, true)
-    if (allowedOrigins.includes(origin) || /^http:\/\/localhost:\d+$/.test(origin)) {
+    if (
+      allowedOrigins.includes(origin) ||
+      /^http:\/\/localhost:\d+$/.test(origin) ||
+      /^https:\/\/.*\.vercel\.app$/.test(origin)
+    ) {
       return callback(null, true)
     }
     callback(new Error('Not allowed by CORS'))
@@ -92,6 +97,21 @@ app.use(limiter)
 app.use('/api/business', businessRoutes)
 app.use('/api/loan', loanRoutes)
 app.use('/api/decision', decisionRoutes)
+
+// Root route
+app.get('/', (req, res) => {
+  res.json({
+    message: 'MSME Lending Decision System API',
+    version: '1.0.0',
+    endpoints: {
+      health: '/health',
+      ready: '/ready',
+      business: '/api/business',
+      loan: '/api/loan',
+      decision: '/api/decision'
+    }
+  })
+})
 
 // Health check endpoint
 app.get('/health', (req, res) => {
